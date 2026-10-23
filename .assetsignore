@@ -1,0 +1,14 @@
+.git/**
+.github/**
+worker/**
+connector/**
+tests/**
+node_modules/**
+.wrangler/**
+*.md
+wrangler.jsonc
+package*.json
+*.zip
+*.log
+.env*
+.dev.vars*

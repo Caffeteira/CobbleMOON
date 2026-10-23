@@ -1,0 +1,1 @@
+{"schemaVersion":1,"id":"cobblemoon_store_bridge","version":"0.1.0","name":"CobbleMOON Store Bridge","description":"Fila de comandos autenticada para a loja CobbleMOON.","environment":"server","entrypoints":{"main":["br.com.cobblemoon.store.StoreBridge"]},"depends":{"fabricloader":">=0.16.10","fabric-api":"*","minecraft":"1.21.1","java":">=21"}}
