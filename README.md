@@ -5,7 +5,7 @@
 - Painel: `/admin/`. Produtos, preços em BRL, benefícios, duração, imagens, comandos, exibição do catálogo, IP/Discord/modpack, texto da página inicial, pedidos, entregas, status do servidor e exportação JSON.
 - Backend persistente: Cloudflare Worker + Durable Object com armazenamento SQLite. Migração automática pelo Wrangler, sem banco externo. Sujeito aos limites do plano Cloudflare da conta.
 - Conector: mod server-side Fabric 1.21.1 / Java 21 em `connector/`.
-- **Checkout e webhooks reais DESATIVADOS. Nenhum provedor escolhido. Nenhuma cobrança é criada.** A integração com o provedor, validação das notificações e testes de compra/reembolso ainda precisam ser implementados após a escolha.
+- Stripe Checkout em BRL, métodos elegíveis controlados no Dashboard (incluindo Pix), acompanhamento privado do pedido e webhook assinado. **Vendas bloqueadas por padrão** até configurar credenciais, validar pagamento/entrega e ativar PAYMENTS_ENABLED.
 - A entrega de teste executa comandos reais e é identificada como teste, nunca como receita ou pagamento confirmado.
 - O painel cobre as configurações descritas acima. Pokédex, time local e layout/CSS continuam sendo recursos do código; não há editor visual de todas as páginas nesta versão.
 
@@ -36,9 +36,36 @@ Veja `connector/README.md`. Instale o JAR em um servidor de teste, configure o c
 
 A fila usa um ID por comando, confirmação autenticada e registro local durável antes da execução. Quedas com efeito incerto resultam em **review**, sem reexecução automática. Isso evita prometer “exactly once” para efeitos arbitrários no Minecraft. Confira cada comando no ambiente real antes de ativar vendas. Não exclua nem restaure uma versão antiga do ledger do mod sem reconciliar as entregas.
 
+## Stripe e Pix
+
+O conector ChatGPT–Stripe permite administrar a conta, mas não instala credenciais de execução na Cloudflare. No Worker → Settings → Variables and Secrets, configure:
+
+| Nome | Tipo / finalidade |
+| --- | --- |
+| STRIPE_SECRET_KEY | Secret. Prefira chave restrita Stripe, com permissões necessárias para criar e consultar Checkout Sessions e seus recursos associados. Valide as permissões no ambiente de teste antes de produção. |
+| STRIPE_WEBHOOK_SECRET | Secret. Segredo `whsec_…` do endpoint e ambiente correspondente. Não é uma chave de API. |
+| PAYMENTS_ENABLED | Texto `true` somente após os testes; remova ou defina `false` para bloquear novos checkouts sem bloquear notificações de pedidos existentes. |
+
+Use um sandbox separado para os testes: chave restrita de teste + endpoint de teste. Em Painel → Pagamentos, crie o checkout de teste e conclua-o no ambiente Stripe. Ele deve chegar como `test_paid_no_delivery`, sem comandos no servidor. O botão só funciona com credenciais de teste; não converte uma compra real em teste. Não reutilize segredos entre ambientes. Antes de substituir credenciais, reconcilie pedidos pendentes do ambiente anterior.
+
+Endpoint obrigatório: `https://cobblemoon.shop/api/webhooks/stripe`. Versão: `2026-08-26.dahlia`. Eventos:
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_succeeded`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
+- `charge.refunded`
+- `charge.dispute.created`
+
+O backend verifica assinatura sobre o corpo original (tolerância de 5 minutos), ambiente e correspondência com o pedido. Consulta a sessão na API Stripe e compara total, moeda, referência e metadados. Só `payment_status=paid` com sessão completa aprova o pedido. O retorno do navegador nunca aprova compras. Eventos e pagamentos repetidos não recriam entregas. Retentativas de checkout da mesma sacola usam a mesma sessão e chave de idempotência; pedido mínimo R$ 0,50.
+
+Reembolsos e contestações levam o pedido para revisão e suspendem comandos ainda não enviados. Comandos já executados não são desfeitos automaticamente. Se o servidor ficar offline, pagamentos aprovados permanecem na fila até o conector encontrar o jogador online. O link de acompanhamento contém uma chave de acesso privada no fragmento da URL; não compartilhe esse link.
+
+Após o teste Stripe e o teste explícito de entrega Minecraft, configure credenciais de produção, o segredo do endpoint de produção e PAYMENTS_ENABLED=true. Confirme a situação da conta e os métodos disponíveis na Stripe. A disponibilidade de Pix no Dashboard não substitui a validação de uma compra completa. Um teste local com mocks não é uma transação real.
+
 ## Verificação
 
-`npm test` — autenticação, conflito de edição, preço calculado no backend, limites, comandos/URLs inválidos, ausência de checkout falso, fila para jogador online e confirmação idempotente.
+`npm ci && npm test` — autenticação, edição, preço no backend, assinatura e validade dos webhooks, notificações assíncronas/duplicadas, isolamento de teste, reembolsos, privacidade do pedido e confirmação idempotente. Os testes Stripe usam respostas simuladas e assinaturas locais.
 
 `gradle --no-daemon build` em `connector/` — compila o mod com Java 21 e Gradle 8.10.2. O GitHub Actions também gera o JAR em artefato.
 
