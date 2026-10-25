@@ -70,3 +70,14 @@ Após o teste Stripe e o teste explícito de entrega Minecraft, configure creden
 `gradle --no-daemon build` em `connector/` — compila o mod com Java 21 e Gradle 8.10.2. O GitHub Actions também gera o JAR em artefato.
 
 Sem teste em um servidor Minecraft real, não é possível validar a entrega dos comandos específicos de cada mod instalado.
+
+
+## Preparação de Pix, cartão e PayPal (24/10/2026)
+
+O painel → Pagamentos agora salva preferências administrativas separadas do catálogo e com controle de revisão. Todos os métodos começam indisponíveis. Os campos de chave Pix, recebedor, cidade, e-mail PayPal, Client ID e ambiente podem ficar vazios; nenhum segredo é salvo nesse formulário ou retornado na API pública.
+
+Pix e cartão automáticos reutilizam a Stripe. Cada opção precisa de uma configuração de métodos específica `pmc_...`, habilitada e validada no Dashboard para conter somente o método indicado. A opção só é anunciada como disponível quando solicitada no painel e quando a chave, webhook, modo de produção, PAYMENTS_ENABLED e conector satisfazem as proteções existentes. Teste a disponibilidade real do método antes de abrir vendas. A seleção é validada no servidor; a API ignora tentativas de usar métodos desativados.
+
+Os campos PayPal são de preparação. Nesta versão não há criação/captura de pedidos nem webhook PayPal. Ele permanece indisponível mesmo com dados preenchidos. Uma chave Pix isolada também não representa integração ou confirmação automática; o pagamento Pix manual não foi ativado. Não use esses campos como promessa de cobrança funcional.
+
+O carrinho mostra as três opções com status, pede nickname e Discord e bloqueia a finalização quando não há método operacional. Preços e comandos precisam ser configurados por produto. URLs de retorno Stripe acompanham a origem da loja que criou o pedido, em vez de enviar quem compra no workers.dev para um domínio não validado.

@@ -1,3 +1,4 @@
+import {defaultPaymentConfig,validatePaymentConfig,publicPaymentMethods} from './payment-config.mjs';
 import seed from './seed.json' with {type:'json'};
 import {paymentSettings,stripeClient,verifiedEvent,checkoutParameters,validCheckoutUrl,PAYMENT_EVENTS,SITE_ORIGIN} from './payments.mjs';
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
@@ -14,28 +15,33 @@ export class Store {
  put(kind,key,value){this.sql.exec('INSERT INTO records(kind,id,data) VALUES(?,?,?) ON CONFLICT(kind,id) DO UPDATE SET data=excluded.data',kind,key,JSON.stringify(value));}
  list(kind){return this.sql.exec('SELECT data FROM records WHERE kind=? ORDER BY rowid DESC LIMIT 500',kind).toArray().map(r=>JSON.parse(r.data));}
  audit(action,detail){const key=id();this.put('audit',key,{id:key,at:new Date().toISOString(),action,detail});}
+ paymentConfig(){return this.get('payment-config','main')||defaultPaymentConfig();}
+ methods(){return publicPaymentMethods(this.paymentConfig(),paymentSettings(this.env).enabled);}
  stripe(){return stripeClient(this.env);}
  enqueue(order){for(const line of order.lines)for(let q=0;q<line.quantity;q++)for(const command of line.commands){const key=id();this.put('job',key,{id:key,orderId:order.id,nick:order.nick,template:command,status:'queued',test:order.test,createdAt:order.createdAt});}}
  async checkout(req,test=false){
   const settings=paymentSettings(this.env);
   if(test ? !settings.keyConfigured||!settings.webhookConfigured||settings.mode!=='test' : !settings.enabled)fail(test?'Configure chaves de teste e o webhook de teste.':'Pagamentos ainda não foram ativados. Nenhuma cobrança foi criada.',503);
   const origin=req.headers.get('Origin');if(origin&&origin!==new URL(req.url).origin)fail('Origem não autorizada',403);
-  const input=await body(req);if(!/^[a-f0-9-]{36}$/.test(input.attemptId||''))fail('Identificador de tentativa inválido');
+  const input=await body(req);
+  if(!test){const methods=this.methods().filter(m=>m.enabled);if(!methods.length)fail('Os pagamentos ainda não foram configurados. Nenhuma cobrança foi criada.',503);if(!methods.some(m=>m.id===input.paymentMethod))fail('Forma de pagamento indisponível.',400);}
+  const discord=typeof input.discord==='string'?input.discord.trim():'';if(!test&&!discord)fail('Informe seu usuário do Discord');if(input.discord!==undefined&&(!discord||discord.length>80||/[\u0000-\u001f<>]/.test(discord)))fail('Discord inválido');
+  if(!/^[a-f0-9-]{36}$/.test(input.attemptId||''))fail('Identificador de tentativa inválido');
   const snapshot=snapshotOrder(this.get('config','main').products,input);if(snapshot.totalCents<50)fail('O pedido mínimo é R$ 0,50');
-  const fingerprint=JSON.stringify({nick:input.nick,items:input.items.map(x=>({id:x.id,quantity:x.quantity})),test});
+  const fingerprint=JSON.stringify({nick:input.nick,items:input.items.map(x=>({id:x.id,quantity:x.quantity})),discord,paymentMethod:input.paymentMethod||'',test});
   const order=this.state.storage.transactionSync(()=>{
    const attempt=this.get('attempt',input.attemptId);
    if(attempt){if(attempt.fingerprint!==fingerprint)fail('A sacola mudou. Inicie uma nova tentativa.',409);return this.get('order',attempt.orderId);}
    const ip=req.headers.get('CF-Connecting-IP')||'unknown',rate=this.get('checkout-rate',ip);if(rate?.until>Date.now()&&rate.count>=20)fail('Muitas tentativas. Aguarde alguns minutos.',429);
    this.put('checkout-rate',ip,{count:rate?.until>Date.now()?rate.count+1:1,until:rate?.until>Date.now()?rate.until:Date.now()+600000});
    const letters=Array.from(crypto.getRandomValues(new Uint8Array(8)),n=>String.fromCharCode(97+n%26)).join('');
-   const o={...snapshot,test,status:'creating_payment',paymentStatus:'pending',accessToken:id()+id(),expiresAt:Math.floor(Date.now()/1000)+3600,integrationIdentifier:'cobblemoon_'+letters};
+   const o={...snapshot,discord,paymentMethod:input.paymentMethod||'',origin:new URL(req.url).origin,test,status:'creating_payment',paymentStatus:'pending',accessToken:id()+id(),expiresAt:Math.floor(Date.now()/1000)+3600,integrationIdentifier:'cobblemoon_'+letters};
    this.put('order',o.id,o);this.put('attempt',input.attemptId,{orderId:o.id,fingerprint});this.audit('checkout.created',{id:o.id,test});return o;
   });
   if(order.paymentStatus==='approved')return json({orderId:order.id,status:'paid',statusPath:'/#/pedido/'+order.id+'/'+order.accessToken});
   if(order.expiresAt<=Math.floor(Date.now()/1000)+30)fail('Tentativa expirada. Atualize a página e tente novamente.',409);
   if(order.checkoutUrl)return json({orderId:order.id,url:order.checkoutUrl,statusPath:'/#/pedido/'+order.id+'/'+order.accessToken});
-  let session;try{session=await this.stripe().checkout.sessions.create(checkoutParameters(order),{idempotencyKey:'cobblemoon-'+order.id});}catch{this.audit('checkout.error',{id:order.id});fail('Não foi possível criar o pagamento. Confira a Stripe no painel e tente novamente.',502);}
+  let session;try{session=await this.stripe().checkout.sessions.create({...checkoutParameters(order),...(!test?{payment_method_configuration:this.paymentConfig()[order.paymentMethod].configurationId}:{})},{idempotencyKey:'cobblemoon-'+order.id});}catch{this.audit('checkout.error',{id:order.id});fail('Não foi possível criar o pagamento. Confira a Stripe no painel e tente novamente.',502);}
   if(!validCheckoutUrl(session.url)||session.livemode===test)fail('Resposta de pagamento incompatível',502);
   this.state.storage.transactionSync(()=>{const current=this.get('order',order.id);current.stripeSessionId=session.id;current.checkoutUrl=session.url;if(current.paymentStatus==='pending')current.status='awaiting_payment';this.put('order',current.id,current);});
   return json({orderId:order.id,url:session.url,statusPath:'/#/pedido/'+order.id+'/'+order.accessToken},201);
@@ -88,7 +94,7 @@ export class Store {
  }
  async fetch(req){try{return await this.route(req)}catch(e){if(!e.status)console.error('Store error',e.message);return json({error:e.status?e.message:'Erro interno. Tente novamente.'},e.status||500)}}
  async route(req){const u=new URL(req.url),path=u.pathname,method=req.method,config=this.get('config','main');
- if(path==='/api/catalog'&&method==='GET')return json({site:config.site,products:config.products.filter(p=>p.enabled).map(({commands,enabled,...p})=>({...p,draft:p.draft||!Number.isFinite(p.price)||!commands.length})),checkoutEnabled:paymentSettings(this.env).enabled,paymentProvider:'stripe'});
+ if(path==='/api/catalog'&&method==='GET')return json({site:config.site,products:config.products.filter(p=>p.enabled).map(({commands,enabled,...p})=>({...p,draft:p.draft||!Number.isFinite(p.price)||!commands.length})),checkoutEnabled:this.methods().some(m=>m.enabled),paymentMethods:this.methods(),paymentProvider:'stripe'});
  if(path==='/api/checkout'&&method==='POST')return this.checkout(req);
  if(path==='/api/webhooks/stripe'&&method==='POST')return this.stripeWebhook(req);
  if(path.startsWith('/api/orders/')&&method==='GET'){const key=path.slice('/api/orders/'.length);const o=this.get('order',key);if(!o||!await authorized(req,o.accessToken))fail('Pedido não encontrado',404);return json({id:o.id,nick:o.nick,totalCents:o.totalCents,status:o.status,paymentStatus:o.paymentStatus,test:!!o.test,lines:o.lines.map(({name,quantity})=>({name,quantity})),checkoutUrl:o.paymentStatus==='pending'&&o.expiresAt>Date.now()/1000?o.checkoutUrl:null});}
@@ -98,7 +104,8 @@ export class Store {
   const origin=req.headers.get('Origin');if(origin&&origin!==u.origin)fail('Origem não autorizada',403);
   const ip=req.headers.get('CF-Connecting-IP')||'unknown';const rate=this.get('auth',ip);if(rate&&rate.until>Date.now()&&rate.count>=10)fail('Muitas tentativas. Aguarde 15 minutos.',429);
   if(!await authorized(req,this.env.ADMIN_TOKEN)){this.put('auth',ip,{count:rate?.until>Date.now()?rate.count+1:1,until:rate?.until>Date.now()?rate.until:Date.now()+900000});fail('Chave administrativa inválida',401)}
-  if(path==='/api/admin/state'&&method==='GET')return json({config,orders:this.list('order').map(({accessToken,checkoutUrl,...o})=>o),jobs:this.list('job'),audit:this.list('audit'),server:this.get('server','main'),payments:{...paymentSettings(this.env),...this.get('payments','webhook'),webhookUrl:SITE_ORIGIN+'/api/webhooks/stripe'},bridgeConfigured:!!this.env.BRIDGE_TOKEN&&this.env.BRIDGE_TOKEN.length>=32});
+  if(path==='/api/admin/state'&&method==='GET')return json({config,orders:this.list('order').map(({accessToken,checkoutUrl,...o})=>o),jobs:this.list('job'),audit:this.list('audit'),server:this.get('server','main'),paymentConfig:this.paymentConfig(),paymentMethods:this.methods(),payments:{...paymentSettings(this.env),...this.get('payments','webhook'),webhookUrl:SITE_ORIGIN+'/api/webhooks/stripe'},bridgeConfigured:!!this.env.BRIDGE_TOKEN&&this.env.BRIDGE_TOKEN.length>=32});
+  if(path==='/api/admin/payment-config'&&method==='PUT'){const input=await body(req);return this.state.storage.transactionSync(()=>{const next=validatePaymentConfig(input,this.paymentConfig().version);this.put('payment-config','main',next);this.audit('payment-config.updated',{version:next.version});return json({paymentConfig:next,paymentMethods:this.methods()});});}
   if(path==='/api/admin/test-checkout'&&method==='POST')return this.checkout(req,true);
   if(path==='/api/admin/config'&&method==='PUT'){const input=await body(req);return this.state.storage.transactionSync(()=>{const now=this.get('config','main');if(input.version!==now.version)fail('Outra edição foi salva. Atualize antes de salvar.',409);if(!Array.isArray(input.products)||input.products.length>200)fail('Catálogo inválido');const products=input.products.map(validateProduct);if(new Set(products.map(p=>p.id)).size!==products.length)fail('Identificadores repetidos');const site={};for(const key of ['serverIp','discord','shop','modpack','minecraft','cobblemon','homeTitle','homeSubtitle']){const v=input.site?.[key]||'';if(typeof v!=='string'||v.length>1000)fail('Configuração inválida');if(['discord','shop','modpack'].includes(key)&&!safeUrl(v))fail('Links devem usar HTTPS');site[key]=v;}const next={site,products,version:now.version+1};this.put('config','main',next);this.audit('config.updated',{version:next.version});return json({config:next});});}
   if(path==='/api/admin/test-order'&&method==='POST'){const input=await body(req);if(input.confirm!=='EXECUTAR TESTE NO SERVIDOR')fail('Confirme o teste explicitamente');if(!this.env.BRIDGE_TOKEN||this.env.BRIDGE_TOKEN.length<32)fail('Configure o BRIDGE_TOKEN primeiro');const server=this.get('server','main');if(!server||Date.now()-server.seenAt>120000)fail('O conector do servidor está desconectado');return this.state.storage.transactionSync(()=>{const current=this.get('config','main');const order={...snapshotOrder(current.products,input),test:true,status:'test_queued'};this.put('order',order.id,order);this.enqueue(order);this.audit('test.created',{id:order.id,nick:order.nick});return json({order},201)});}
