@@ -81,3 +81,11 @@ A loja cria uma Checkout Session para cada pedido, com nick e Discord armazenado
 O formulário antigo de Pix/PayPal foi removido. Os dados antigos permanecem privados para compatibilidade, mas não ativam nem confirmam pagamentos. PayPal só será apresentado caso a própria Stripe o disponibilize para a conta e transação; não existe integração PayPal separada.
 
 O fluxo é: pedido → Stripe → webhook assinado e consulta do pagamento → fila → conector Fabric → comando → confirmação no histórico. Pedidos pagos aguardam servidor e jogador online; notificações repetidas não repetem a entrega. Configure os Secrets e a variável de ativação conforme descrito acima. É indispensável testar os comandos reais e o retorno do conector antes de abrir vendas.
+
+## Blog da CobbleMOON
+
+O painel inclui **Blog e novidades**: crie posts nas categorias Updates, Notícias e Promoções, salve rascunhos, confira a prévia e publique. Título, endereço, resumo, capa opcional e conteúdo são editáveis. O texto usa parágrafos separados por linha em branco; HTML é exibido como texto para impedir scripts. Arquivar retira o post do site e permite restaurá-lo como rascunho.
+
+Os posts ficam no Durable Object STORE, separados do catálogo, com autenticação administrativa, revisão para evitar sobrescritas e histórico de atividades. Deploys não recriam nem substituem publicações. A API pública só retorna posts publicados. A página inicial destaca automaticamente o de data de publicação mais recente; editar o texto de um post antigo não muda sua data de publicação. Retirar e republicar cria uma nova data de publicação.
+
+Rotas públicas: `/#/blog`, `/#/blog/endereco-do-post`, `/api/blog` e `/api/blog/endereco-do-post`. A antiga rota da Pokédex redireciona para o blog. Os dados de Pokémon que o montador de times utiliza continuam disponíveis internamente.
