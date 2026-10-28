@@ -13,7 +13,9 @@
 
 O comando já configurado no projeto continua funcionando:
 
-`npx wrangler deploy --name cobblemoon --assets . --compatibility-date 2026-10-19`
+`npx wrangler deploy --name cobblemoon --assets . --compatibility-date 2026-10-19 --keep-vars`
+
+O deploy usa `keep_vars: true` para preservar as variáveis de runtime cadastradas no Dashboard. Não adicione valores ou padrões em `vars` no repositório para substituir os dados do painel. Os secrets criptografados são mantidos pelo Wrangler; não execute comandos de exclusão de secrets nas atualizações. A opção não restaura valores removidos em deploys anteriores.
 
 O arquivo `wrangler.jsonc` adiciona o Worker, binding ASSETS e Durable Object STORE. `.assetsignore` exclui backend, testes e código do conector dos arquivos públicos. O código-fonte do repositório permanece público; nunca coloque segredos nele.
 

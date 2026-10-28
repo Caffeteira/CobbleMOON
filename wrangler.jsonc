@@ -1,14 +1,8 @@
 {
   "name": "cobblemoon",
+  "keep_vars": true,
   "main": "worker/index.mjs",
   "compatibility_date": "2026-10-19",
-  "workers_dev": true,
-  "routes": [
-    {
-      "pattern": "cobblemoon.shop/*",
-      "zone_name": "cobblemoon.shop"
-    }
-  ],
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
@@ -30,6 +24,13 @@
       "new_sqlite_classes": [
         "Store"
       ]
+    }
+  ],
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "cobblemoon.shop/*",
+      "zone_name": "cobblemoon.shop"
     }
   ]
 }
