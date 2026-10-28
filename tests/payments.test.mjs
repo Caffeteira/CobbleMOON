@@ -102,3 +102,13 @@ test('payment approval works before connecting Minecraft and delivery stays queu
  assert.equal((await f.request('bridge/poll','POST',{serverId:'offline-test',players:[]})).status,401);
  assert.equal(f.store.list('job').every(j=>j.status==='queued'),true);
 });
+
+test('credentials trim outer whitespace and report only a safe category, never secret values',()=>{
+ const configured=paymentSettings({...env,STRIPE_SECRET_KEY:' \nrk_live_fixture\r\n',STRIPE_WEBHOOK_SECRET:' whsec_fixture\n'});
+ assert.equal(configured.enabled,true);assert.equal(configured.keyIssue,null);
+ assert.equal(JSON.stringify(configured).includes('rk_live_fixture'),false);
+ assert.equal(paymentSettings({...env,STRIPE_SECRET_KEY:'pk_live_fixture'}).keyIssue,'publishable');
+ assert.equal(paymentSettings({...env,STRIPE_SECRET_KEY:''}).keyIssue,'missing');
+ assert.equal(paymentSettings({...env,STRIPE_SECRET_KEY:'"rk_live_fixture"'}).keyIssue,'invalid_format');
+ assert.equal(paymentSettings({...env,STRIPE_SECRET_KEY:'rk_live_bad key'}).enabled,false);
+});
