@@ -2,7 +2,7 @@
  const ed=window.SITE_EDITOR;if(!ed)return;window.applyCobbleTheme(ed.appearance);
  const safe=esc,lines=value=>safe(value).replace(/\n/g,'<br>'),paragraphs=value=>String(value).split(/\n\s*\n/).filter(Boolean).map(p=>`<p>${lines(p)}</p>`).join('');
  const href=value=>value?.startsWith('/')?'#'+value:value;
- const action=(url,label,cls='text-link')=>['discord','modpack','shop'].includes(url)?external(url,safe(label),cls):url?`<a class="${cls}" href="${safe(href(url))}" ${url.startsWith('https:')?'target="_blank" rel="noopener noreferrer"':''}>${safe(label)}</a>`:'';
+ const action=(url,label,cls='text-link')=>{if(['discord','modpack','shop'].includes(url)){const target=CFG[url];return /^https:\/\//i.test(target||'')?`<a class="${cls}" href="${safe(target)}" target="_blank" rel="noopener noreferrer">${safe(label)}</a>`:`<button class="${cls}" data-pending="${url}">${safe(label)}</button>`;}return url?`<a class="${cls}" href="${safe(href(url))}" ${url.startsWith('https:')?'target="_blank" rel="noopener noreferrer"':''}>${safe(label)}</a>`:'';};
  const title=value=>{const pieces=String(value).split('\n');return pieces.map((p,i)=>i===pieces.length-1&&pieces.length>1?`<span>${safe(p)}</span>`:safe(p)).join('<br>');};
  logo=()=>`${ed.brand.showLogo?`<img class="brand-image" src="${safe(ed.brand.logo||'./assets/logo.png')}" alt="" width="54" height="54">`:''}<span class="logo-type"><strong>${ed.brand.name==='CobbleMOON'?'Cobble<span class="lime">MOON</span>':safe(ed.brand.name)}</strong><small>${safe(ed.brand.tagline)}</small></span>`;
  NAV.splice(0,NAV.length,...ed.navigation.items.filter(p=>p.enabled).map(p=>[p.path,p.label]));
