@@ -1,8 +1,9 @@
 /* Catálogo e pagamentos confirmados pelo backend. */
 const checkoutEnabled=!!window.CHECKOUT_ENABLED;
-const paymentMethods=window.PAYMENT_METHODS||[{id:'pix',name:'Pix',enabled:false},{id:'card',name:'Cartão',enabled:false},{id:'paypal',name:'PayPal',enabled:false}];
+const paymentMethods=window.PAYMENT_METHODS||[{id:'stripe',name:'Pagar com Stripe',enabled:false}];
 let buyerDiscord='',selectedPayment=paymentMethods.find(m=>m.enabled)?.id||'';
-function paymentChoices(){return `<fieldset class="payment-choices"><legend>Como você prefere pagar?</legend><div>${paymentMethods.map(m=>`<label class="payment-choice ${m.enabled?'':'unavailable'}"><input type="radio" name="payment-method" value="${esc(m.id)}" ${selectedPayment===m.id?'checked':''} ${m.enabled?'':'disabled'}><span><strong>${esc(m.name)}</strong><small>${m.enabled?'Disponível':'Em configuração'}</small></span></label>`).join('')}</div><p>As opções serão liberadas após a configuração pela administração.</p></fieldset>`;}
+function paymentChoices(){const method=paymentMethods.find(m=>m.id==='stripe');return `<fieldset class="payment-choices"><legend>Pagamento</legend><p>Você escolherá a forma de pagamento no checkout protegido da Stripe. Os métodos disponíveis dependem da sua região e das opções habilitadas na loja.</p><p>${method?.enabled?'O pedido será entregue após a Stripe confirmar o pagamento.':'Os pagamentos ainda aguardam configuração pela administração.'}</p></fieldset>`;}
+
 let checkoutBusy=false,checkoutAttempt=null,orderPollTimer=null;
 const PRODUCTS=window.STORE_PRODUCTS;
 const CATEGORIES=[['todos','Todos','grid'],['vips','VIPs','crown'],['cosmeticos','Cosméticos','spark'],['baus','Baús','chest'],['chaves','Chaves','key'],['moedas','Moedas','coin'],['extras','Extras','gift']];

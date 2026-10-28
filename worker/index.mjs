@@ -42,7 +42,7 @@ export class Store {
   if(order.paymentStatus==='approved')return json({orderId:order.id,status:'paid',statusPath:'/#/pedido/'+order.id+'/'+order.accessToken});
   if(order.expiresAt<=Math.floor(Date.now()/1000)+30)fail('Tentativa expirada. Atualize a página e tente novamente.',409);
   if(order.checkoutUrl)return json({orderId:order.id,url:order.checkoutUrl,statusPath:'/#/pedido/'+order.id+'/'+order.accessToken});
-  let session;try{session=await this.stripe().checkout.sessions.create({...checkoutParameters(order),...(!test?{payment_method_configuration:this.paymentConfig()[order.paymentMethod].configurationId}:{})},{idempotencyKey:'cobblemoon-'+order.id});}catch{this.audit('checkout.error',{id:order.id});fail('Não foi possível criar o pagamento. Confira a Stripe no painel e tente novamente.',502);}
+  let session;try{session=await this.stripe().checkout.sessions.create(checkoutParameters(order),{idempotencyKey:'cobblemoon-'+order.id});}catch{this.audit('checkout.error',{id:order.id});fail('Não foi possível criar o pagamento. Confira a Stripe no painel e tente novamente.',502);}
   if(!validCheckoutUrl(session.url)||session.livemode===test)fail('Resposta de pagamento incompatível',502);
   this.state.storage.transactionSync(()=>{const current=this.get('order',order.id);current.stripeSessionId=session.id;current.checkoutUrl=session.url;if(current.paymentStatus==='pending')current.status='awaiting_payment';this.put('order',current.id,current);});
   return json({orderId:order.id,url:session.url,statusPath:'/#/pedido/'+order.id+'/'+order.accessToken},201);

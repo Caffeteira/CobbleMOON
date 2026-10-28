@@ -16,10 +16,9 @@ export function validatePaymentConfig(input,currentVersion) {
   out.paypal.environment=input.paypal.environment;out.paypal.requested=input.paypal.requested===true;
   return out;
 }
+// Stripe chooses eligible methods in its hosted Checkout, using the account settings.
+// Retained private preferences are legacy data, never payment confirmation.
 export function publicPaymentMethods(config,stripeReady) {
-  return [
-    {id:'pix',name:'Pix',enabled:stripeReady&&config.pix.requested&&!!config.pix.configurationId,description:'QR Code e código copia e cola no checkout.'},
-    {id:'card',name:'Cartão',enabled:stripeReady&&config.card.requested&&!!config.card.configurationId,description:'Pagamento protegido pela Stripe.'},
-    {id:'paypal',name:'PayPal',enabled:false,description:'Integração pendente de configuração e validação.'}
-  ];
+  return [{id:'stripe',name:'Pagar com Stripe',enabled:stripeReady,
+    description:'Escolha entre Pix, cartão e outros métodos disponíveis no checkout da Stripe.'}];
 }

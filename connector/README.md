@@ -20,4 +20,4 @@ Cada comando tem ID próprio. O registro local é sincronizado no disco antes da
 
 O retorno de sucesso representa o resultado reportado pelo comando do Minecraft. Comandos de outros mods podem ter efeitos assíncronos ou retornar sucesso sem comprovar o conteúdo do inventário. Valide cada comando num servidor de testes antes de vender. Em falhas, confira o console e o histórico antes de qualquer compensação manual.
 
-**Pagamentos reais ainda não estão integrados. O endpoint público de checkout fica desativado.**
+A loja recebe confirmação assinada da Stripe antes de gerar a fila. O conector não processa pagamentos: ele consulta e confirma os comandos. As vendas só abrem após configurar as credenciais no Worker e testar pagamento e entrega.
