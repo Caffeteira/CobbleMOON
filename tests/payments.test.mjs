@@ -19,7 +19,7 @@ function setup(overrides={}){
  return {store,request,webhook,checkout,sessions,get calls(){return calls;}};
 }
 test('activation fails closed, authoritative price, retry reuses session, order privacy',async()=>{
- assert.equal(paymentSettings({...env,PAYMENTS_ENABLED:'false'}).enabled,false);assert.equal(paymentSettings({...env,BRIDGE_TOKEN:env.ADMIN_TOKEN}).enabled,false);assert.equal(paymentSettings({...env,STRIPE_SECRET_KEY:'rk_test_fixture'}).enabled,false);
+ assert.equal(paymentSettings({...env,PAYMENTS_ENABLED:'false'}).enabled,false);assert.equal(paymentSettings({...env,BRIDGE_TOKEN:env.ADMIN_TOKEN}).bridgeConfigured,false);assert.equal(paymentSettings({...env,BRIDGE_TOKEN:''}).enabled,true);assert.equal(paymentSettings({...env,STRIPE_SECRET_KEY:'rk_test_fixture'}).enabled,false);
  assert.equal(validCheckoutUrl('https://checkout.stripe.com.evil.test/x'),false);
  const f=setup(),{order,input,response}=await f.checkout();assert.equal(order.totalCents,700);assert.equal(f.store.list('job').length,0);
  const parameters=checkoutParameters(order);assert.equal(parameters.payment_method_types,undefined);assert.equal(parameters.adaptive_pricing.enabled,false);assert.match(parameters.integration_identifier,/^cobblemoon_[a-z]{8}$/);
@@ -90,4 +90,15 @@ test('confirmed payment flows through bridge delivery and duplicate webhook neve
  await f.webhook('checkout.session.async_payment_succeeded',session);
  assert.equal((await request('bridge/poll',poll)).body.jobs.length,0);
  assert.equal(f.store.list('job').length,2);
+});
+
+test('payment approval works before connecting Minecraft and delivery stays queued',async()=>{
+ const f=setup({BRIDGE_TOKEN:''}),{order,session}=await f.checkout();
+ session.status='complete';session.payment_status='paid';
+ assert.equal((await f.webhook('checkout.session.completed',session)).status,200);
+ assert.equal(f.store.get('order',order.id).paymentStatus,'approved');
+ assert.equal(f.store.get('order',order.id).status,'queued');
+ assert.equal(f.store.list('job').length,2);
+ assert.equal((await f.request('bridge/poll','POST',{serverId:'offline-test',players:[]})).status,401);
+ assert.equal(f.store.list('job').every(j=>j.status==='queued'),true);
 });

@@ -63,7 +63,7 @@ O backend verifica assinatura sobre o corpo original (tolerância de 5 minutos),
 
 Reembolsos e contestações levam o pedido para revisão e suspendem comandos ainda não enviados. Comandos já executados não são desfeitos automaticamente. Se o servidor ficar offline, pagamentos aprovados permanecem na fila até o conector encontrar o jogador online. O link de acompanhamento contém uma chave de acesso privada no fragmento da URL; não compartilhe esse link.
 
-Após o teste Stripe e o teste explícito de entrega Minecraft, configure credenciais de produção, o segredo do endpoint de produção e PAYMENTS_ENABLED=true. Confirme a situação da conta e os métodos disponíveis na Stripe. A disponibilidade de Pix no Dashboard não substitui a validação de uma compra completa. Um teste local com mocks não é uma transação real.
+O pagamento pode ser configurado antes do Minecraft: configure as credenciais Stripe e o segredo do endpoint correspondente, valide a confirmação e só abra vendas quando desejar. PAYMENTS_ENABLED=true habilita o checkout em produção sem exigir BRIDGE_TOKEN; os pedidos pagos aguardam na fila até o conector ser configurado. O teste explícito da entrega Minecraft fica para a etapa seguinte. Confirme a situação da conta e os métodos disponíveis na Stripe. A disponibilidade de Pix no Dashboard não substitui a validação de uma compra completa. Um teste local com mocks não é uma transação real.
 
 ## Verificação
 

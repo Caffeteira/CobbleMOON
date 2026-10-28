@@ -7,8 +7,8 @@ export function paymentSettings(env) {
   const mode = keyConfigured && /^(?:rk|sk)_live_/.test(env.STRIPE_SECRET_KEY) ? 'live' : 'test';
   const webhookConfigured = /^whsec_\S+$/.test(env.STRIPE_WEBHOOK_SECRET || '');
   const bridgeConfigured = !!env.BRIDGE_TOKEN && env.BRIDGE_TOKEN.length >= 32 && env.BRIDGE_TOKEN !== env.ADMIN_TOKEN;
-  const enabled = env.PAYMENTS_ENABLED === 'true' && keyConfigured && webhookConfigured && bridgeConfigured && mode === 'live';
-  return {provider:'stripe',enabled,mode,keyConfigured,webhookConfigured,bridgeConfigured,activationRequested:env.PAYMENTS_ENABLED === 'true',reason:enabled?'Checkout habilitado. Confira os testes e a conexão do servidor.':'Configure a Stripe, teste o fluxo e ative PAYMENTS_ENABLED na Cloudflare.'};
+  const enabled = env.PAYMENTS_ENABLED === 'true' && keyConfigured && webhookConfigured && mode === 'live';
+  return {provider:'stripe',enabled,mode,keyConfigured,webhookConfigured,bridgeConfigured,activationRequested:env.PAYMENTS_ENABLED === 'true',reason:!keyConfigured?'Chave Stripe ausente ou com formato inválido. Configure STRIPE_SECRET_KEY.':!webhookConfigured?'Segredo do webhook ausente ou com formato inválido. Configure STRIPE_WEBHOOK_SECRET.':mode!=='live'?'Ambiente de teste: valide o checkout sem executar comandos.':!enabled?'Credenciais com formato reconhecido. PAYMENTS_ENABLED precisa ser true para abrir o checkout.':'Checkout habilitado. A confirmação do pagamento pode ser testada sem o servidor; entregas pagas aguardam o conector.'};
 }
 export function stripeClient(env) {
   return new Stripe(env.STRIPE_SECRET_KEY, {apiVersion:'2026-08-26.dahlia',httpClient:Stripe.createFetchHttpClient(),maxNetworkRetries:2,timeout:20000});
