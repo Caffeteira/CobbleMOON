@@ -1,0 +1,318 @@
+{
+  "version": 1,
+  "brand": {
+    "name": "CobbleMOON",
+    "tagline": "SEU UNIVERSO COBBLEMON",
+    "logo": "./assets/logo.png",
+    "heroImage": "./assets/logo.png",
+    "heroCaption": "UM UNIVERSO PARA CHAMAR DE SEU",
+    "showLogo": true,
+    "showHeroImage": true
+  },
+  "appearance": {
+    "primary": "#c5a4fb",
+    "accent": "#ddffa0",
+    "text": "#eee9fc",
+    "muted": "#a99ab9",
+    "page": "#100d1b",
+    "card": "#1d1729",
+    "header": "#100d1b",
+    "footer": "#0b0812",
+    "overlayColor": "#100d1b",
+    "backgroundOpacity": 100,
+    "overlayOpacity": 62,
+    "backgroundBlur": 0,
+    "backgroundSize": "cover",
+    "backgroundFixed": true,
+    "cardOpacity": 94,
+    "headerOpacity": 94,
+    "footerOpacity": 96,
+    "radius": 18,
+    "width": 1180,
+    "fontSize": 16,
+    "sectionSpacing": 80,
+    "font": "DM Sans",
+    "headingFont": "Outfit",
+    "backgroundPositionX": 50,
+    "backgroundPositionY": 50,
+    "backgroundScale": 100,
+    "backgroundRepeat": "no-repeat"
+  },
+  "home": {
+    "eyebrow": "☾ BEM-VINDO À COBBLEMOON",
+    "title": "Sua jornada.\nSeu time.\nUma nova lua.",
+    "subtitle": "O mundo de Pokémon encontra a liberdade do survival. Explore, construa seu lar e escreva sua história ao lado dos seus Pokémon favoritos.",
+    "primaryLabel": "Começar a jogar →",
+    "primaryUrl": "/como-jogar",
+    "secondaryLabel": "Conhecer a comunidade ↗",
+    "secondaryUrl": "discord",
+    "showHero": true,
+    "showStrip": true,
+    "showServerBar": true,
+    "heroAlignment": "left",
+    "featuresTitle": "Muito além da primeira captura.",
+    "featuresSubtitle": "Uma base para chamar de sua. Um time para levar com você.",
+    "teamTitle": "Qual é o seu time dos sonhos?",
+    "teamText": "Escolha seis parceiros no montador de times e copie sua seleção para compartilhar com os amigos.",
+    "ctaTitle": "Nos vemos sob a lua.",
+    "ctaText": "Prepare o Minecraft, escolha seu parceiro e venha conhecer a CobbleMOON.",
+    "ctaLabel": "Veja como jogar →",
+    "ctaUrl": "/como-jogar",
+    "blocks": [
+      {
+        "id": "blog",
+        "enabled": true
+      },
+      {
+        "id": "features",
+        "enabled": true
+      },
+      {
+        "id": "shop",
+        "enabled": true
+      },
+      {
+        "id": "team",
+        "enabled": true
+      },
+      {
+        "id": "cta",
+        "enabled": true
+      }
+    ],
+    "features": [
+      {
+        "icon": "⌂",
+        "title": "Viva o survival",
+        "text": "Explore biomas, reúna recursos e transforme suas ideias em construções. Sua aventura também acontece fora das batalhas.",
+        "label": "",
+        "url": ""
+      },
+      {
+        "icon": "◉",
+        "title": "Encontre seu parceiro",
+        "text": "Descubra Pokémon pelo caminho, escolha seus favoritos e experimente novas composições para sua equipe.",
+        "label": "Acompanhar as novidades ↗",
+        "url": "/blog"
+      },
+      {
+        "icon": "✦",
+        "title": "Jogue em comunidade",
+        "text": "Compartilhe suas capturas, encontre outros treinadores e acompanhe as novidades nos canais da CobbleMOON.",
+        "label": "Ir para o Discord ↗",
+        "url": "discord"
+      }
+    ]
+  },
+  "navigation": {
+    "showDiscord": true,
+    "showShop": true,
+    "showCart": true,
+    "discordLabel": "Discord ↗",
+    "shopLabel": "Loja ↗",
+    "items": [
+      {
+        "id": "inicio",
+        "label": "Início",
+        "path": "/",
+        "enabled": true
+      },
+      {
+        "id": "sobre",
+        "label": "O servidor",
+        "path": "/sobre",
+        "enabled": true
+      },
+      {
+        "id": "guias",
+        "label": "Como jogar",
+        "path": "/como-jogar",
+        "enabled": true
+      },
+      {
+        "id": "blog",
+        "label": "Blog",
+        "path": "/blog",
+        "enabled": true
+      }
+    ]
+  },
+  "footer": {
+    "text": "Um universo de aventuras.\nUma comunidade sob a mesma lua.",
+    "caption": "SEU PRÓXIMO DESTINO",
+    "disclaimer": "Projeto independente. Sem afiliação com Mojang, Nintendo ou The Pokémon Company.",
+    "showIp": true,
+    "showDiscord": true,
+    "links": [
+      {
+        "label": "Como jogar",
+        "url": "/como-jogar"
+      },
+      {
+        "label": "Blog",
+        "url": "/blog"
+      },
+      {
+        "label": "Convivência",
+        "url": "/regras"
+      },
+      {
+        "label": "Privacidade",
+        "url": "/privacidade"
+      }
+    ]
+  },
+  "shop": {
+    "eyebrow": "FEITO PARA A SUA JORNADA",
+    "title": "Seu universo.\nSeu próximo nível.",
+    "subtitle": "VIPs, estilo e novas possibilidades para sua aventura na CobbleMOON.",
+    "bannerImage": "./assets/ranks/eclipse.png",
+    "bannerTitle": "Eclipse",
+    "bannerCaption": "CONHEÇA A COLEÇÃO",
+    "teaserTitle": "Escolha seu lugar entre as estrelas.",
+    "teaserText": "Conheça a coleção de VIPs e os próximos itens da loja.",
+    "faqTitle": "Ficou com alguma dúvida?",
+    "categoryLabels": {
+      "todos": "Todos",
+      "vips": "VIPs",
+      "cosmeticos": "Cosméticos",
+      "baus": "Baús",
+      "chaves": "Chaves",
+      "moedas": "Moedas",
+      "extras": "Extras"
+    },
+    "faq": [
+      {
+        "question": "Como faço para comprar?",
+        "answer": "Escolha os produtos, informe seu nickname e Discord e prossiga para o checkout da Stripe. O pedido é atualizado após a confirmação do pagamento."
+      },
+      {
+        "question": "O VIP é permanente?",
+        "answer": "Confira a duração indicada no produto antes de comprar."
+      },
+      {
+        "question": "A entrega é automática?",
+        "answer": "Após a confirmação do pagamento, os comandos entram na fila. A entrega aguarda o conector e o jogador online com o nickname informado."
+      }
+    ]
+  },
+  "blog": {
+    "kicker": "DIÁRIO DA COBBLEMOON",
+    "title": "O universo não para.",
+    "highlight": "Fique por dentro.",
+    "subtitle": "Updates do servidor, novidades da comunidade e oportunidades para a sua próxima aventura.",
+    "homeTitle": "Novidades sob a lua.",
+    "homeKicker": "ACONTECE NA COBBLEMOON"
+  },
+  "pages": [
+    {
+      "id": "sobre",
+      "title": "Uma comunidade. Muitas histórias.",
+      "kicker": "CONHEÇA A COBBLEMOON",
+      "body": "",
+      "enabled": true
+    },
+    {
+      "id": "regras",
+      "title": "Jogue junto. Jogue bem.",
+      "kicker": "CONVIVÊNCIA",
+      "body": "",
+      "enabled": true
+    },
+    {
+      "id": "privacidade",
+      "title": "Sua privacidade",
+      "kicker": "TRANSPARÊNCIA",
+      "body": "",
+      "enabled": true
+    }
+  ],
+  "guides": [
+    {
+      "id": "entrar",
+      "title": "Como entrar no servidor",
+      "category": "Primeiros passos",
+      "description": "Prepare seu Minecraft e comece sua jornada.",
+      "body": "",
+      "enabled": true
+    },
+    {
+      "id": "comandos",
+      "title": "Comandos principais",
+      "category": "Primeiros passos",
+      "description": "Encontre os atalhos para explorar a CobbleMOON.",
+      "body": "",
+      "enabled": true
+    },
+    {
+      "id": "vender",
+      "title": "Como vender seus itens",
+      "category": "Mercado",
+      "description": "Organize seus itens e conheça o mercado.",
+      "body": "",
+      "enabled": true
+    }
+  ],
+  "commands": [
+    {
+      "command": "/spawn",
+      "text": "Volte ao ponto inicial."
+    },
+    {
+      "command": "/gts",
+      "text": "Mercado de Pokémon e itens."
+    },
+    {
+      "command": "/sts",
+      "text": "Venda Pokémon para o servidor."
+    },
+    {
+      "command": "/missoes",
+      "text": "Confira suas missões."
+    },
+    {
+      "command": "/battlepass",
+      "text": "Veja o passe de batalha."
+    },
+    {
+      "command": "/treinador",
+      "text": "Consulte seu nível de treinador."
+    },
+    {
+      "command": "/warps",
+      "text": "Explore os destinos do servidor."
+    },
+    {
+      "command": "/kits",
+      "text": "Confira os kits disponíveis."
+    },
+    {
+      "command": "/safari",
+      "text": "Conheça o Safari."
+    },
+    {
+      "command": "/warp crates",
+      "text": "Acesse a área das caixas."
+    },
+    {
+      "command": "/dungeon",
+      "text": "Encontre novos desafios."
+    },
+    {
+      "command": "/raids",
+      "text": "Confira as raids."
+    },
+    {
+      "command": "/warp survival",
+      "text": "Entre no mundo survival."
+    },
+    {
+      "command": "/rtp",
+      "text": "Teleporte para um local aleatório."
+    },
+    {
+      "command": "/ajuda",
+      "text": "Consulte a ajuda dentro do jogo."
+    }
+  ]
+}
