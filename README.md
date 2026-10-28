@@ -89,3 +89,9 @@ O painel inclui **Blog e novidades**: crie posts nas categorias Updates, Notíci
 Os posts ficam no Durable Object STORE, separados do catálogo, com autenticação administrativa, revisão para evitar sobrescritas e histórico de atividades. Deploys não recriam nem substituem publicações. A API pública só retorna posts publicados. A página inicial destaca automaticamente o de data de publicação mais recente; editar o texto de um post antigo não muda sua data de publicação. Retirar e republicar cria uma nova data de publicação.
 
 Rotas públicas: `/#/blog`, `/#/blog/endereco-do-post`, `/api/blog` e `/api/blog/endereco-do-post`. A antiga rota da Pokédex redireciona para o blog. Os dados de Pokémon que o montador de times utiliza continuam disponíveis internamente.
+
+## Imagem de fundo pelo painel
+
+Em **Configurações do site → Imagem de fundo do site**, selecionar um JPG, PNG ou WebP envia e aplica a imagem automaticamente. O navegador otimiza arquivos de até 20 MB para até 2200 pixels e no máximo 1,5 MB. A interface mostra a última imagem enviada e permite desativar ou restaurar o fundo. O site mantém uma camada escura para leitura e usa a imagem na inicial, loja, blog e guias; cartões e textos preservam seus contrastes.
+
+O envio exige autenticação administrativa, origem correspondente e revisão atual. O servidor verifica tamanho e assinatura do formato; SVG e conteúdo HTML não são aceitos. A imagem fica persistida no STORE em blocos separados, sem nova conta ou serviço externo, e os metadados ficam separados do catálogo. Alterar os links do site ou publicar código não remove o fundo. A API pública entrega o arquivo com tipo de imagem, `nosniff` e URL de revisão para evitar cache de uma imagem antiga. Desativar o fundo preserva o arquivo para restaurá-lo. O backup JSON não inclui os bytes da imagem; mantenha também seu arquivo original.
