@@ -1,8 +1,9 @@
+import {backgroundImage} from './background.mjs';
 import defaults from '../site-defaults.json' with {type:'json'};
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status})};
 export const EDITOR_SECTIONS=['brand','appearance','home','navigation','footer','shop','blog','pages','guides','commands'];
 export function editorDefaults(){return structuredClone(defaults);}
-export function siteEditor(store){const saved=store.get('site-editor','main');if(saved)return saved;const initial=editorDefaults(),site=store.get('config','main')?.site;if(site?.homeTitle)initial.home.title=site.homeTitle.replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]*>/g,'');if(site?.homeSubtitle)initial.home.subtitle=site.homeSubtitle;return initial;}
+export function siteEditor(store){const saved=store.get('site-editor','main');if(saved)return {...saved,appearance:{...defaults.appearance,...saved.appearance,backgroundImage:saved.appearance.backgroundImage??backgroundImage(store)}};const initial=editorDefaults();initial.appearance.backgroundImage=backgroundImage(store);const site=store.get('config','main')?.site;if(site?.homeTitle)initial.home.title=site.homeTitle.replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]*>/g,'');if(site?.homeSubtitle)initial.home.subtitle=site.homeSubtitle;return initial;}
 export function publicSiteEditor(store){const value=structuredClone(siteEditor(store));value.pages=value.pages.filter(p=>p.enabled);value.guides=value.guides.filter(p=>p.enabled);return value;}
 const limits={backgroundOpacity:[0,100],overlayOpacity:[0,100],backgroundBlur:[0,20],backgroundScale:[30,250],backgroundPositionX:[0,100],backgroundPositionY:[0,100],cardOpacity:[10,100],headerOpacity:[0,100],footerOpacity:[0,100],radius:[0,40],width:[960,1600],fontSize:[12,22],sectionSpacing:[30,140]};
 const safeUrl=value=>value===''||['discord','modpack','shop'].includes(value)||/^\.\/assets\/[A-Za-z0-9_./-]+$/.test(value)||/^\/(?!\/)[A-Za-z0-9_/?=&-]*$/.test(value)||(()=>{try{const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&!/[\s"'<>`]/.test(value)}catch{return false}})();
@@ -21,7 +22,7 @@ export function validateSection(section,value){
    if(key==='backgroundRepeat'&&!['no-repeat','repeat'].includes(result))fail('Repetição inválida.');
    if(['font','headingFont'].includes(key)&&!['DM Sans','Outfit','system-ui','Arial','Georgia'].includes(result))fail('Fonte inválida.');
   }
-  if(['url','path','primaryUrl','secondaryUrl','ctaUrl','logo','heroImage','bannerImage'].includes(key)&&!safeUrl(result))fail('Use um link interno, HTTPS ou uma imagem enviada.');
+  if(['url','path','primaryUrl','secondaryUrl','ctaUrl','logo','heroImage','bannerImage','backgroundImage'].includes(key)&&!safeUrl(result))fail('Use um link interno, HTTPS ou uma imagem enviada.');
   if(key==='id'&&!/^[a-z0-9][a-z0-9-]{0,59}$/.test(result))fail('Identificador inválido.');
   if(section==='home'&&key==='heroAlignment'&&!['left','center'].includes(result))fail('Alinhamento inválido.');
   if(section==='commands'&&key==='command'&&(!/^\/[A-Za-z0-9_][^\r\n<>]{0,119}$/.test(result)))fail('Informe um comando começando com /.');

@@ -31,7 +31,7 @@ export function checkoutParameters(order) {
     integration_identifier:order.integrationIdentifier,
     metadata:{order_id:order.id,store:'cobblemoon'},
     payment_intent_data:{metadata:{order_id:order.id,store:'cobblemoon'}},
-    line_items:order.lines.map(line=>({price_data:{currency:'brl',unit_amount:line.unitCents,product_data:{name:line.name}},quantity:line.quantity})),
+    line_items:order.lines.map(line=>({price_data:{currency:'brl',unit_amount:line.chargedCents??line.unitCents,product_data:{name:line.chargedCents!==undefined?line.quantity+'× '+line.name+(order.coupon?' · cupom '+order.coupon.code:''):line.name}},quantity:line.chargedCents!==undefined?1:line.quantity})),
     success_url:(order.origin||SITE_ORIGIN)+'/?payment=return#/pedido/'+order.id+'/'+order.accessToken,
     cancel_url:(order.origin||SITE_ORIGIN)+'/#/pedido/'+order.id+'/'+order.accessToken,
     expires_at:order.expiresAt,

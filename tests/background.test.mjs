@@ -17,16 +17,17 @@ test('background upload requires admin, validates type and size, and rejects sta
  const saved=await upload(png);assert.equal(saved.status,200);assert.equal(saved.body.background.active,true);assert.equal(saved.body.background.version,1);
  assert.equal((await upload(png)).status,409);
 });
-test('image persists through restart and catalog edits, returns original bytes, and can be disabled/restored',async()=>{
+test('background stays in draft until publication and preserves published bytes across metadata toggles',async()=>{
  const f=setup(),{background}=(await f.request('admin/background',{method:'POST',body:png,headers:{'X-Background-Version':'0'}})).body;
- f.restart();const publicCatalog=await f.request('catalog',{token:null});assert.equal(publicCatalog.body.site.backgroundImage,background.url);
+ f.restart();const publicCatalog=await f.request('catalog',{token:null});assert.equal(publicCatalog.body.site.backgroundImage,'');
+ const draft=(await f.request('admin/state')).body.editor;const saved=(await f.request('admin/site-draft',{method:'PUT',body:{version:draft.version,section:'appearance',value:{...draft.appearance,backgroundImage:background.url}}})).body.draft;assert.equal((await f.request('catalog',{token:null})).body.site.backgroundImage,'');await f.request('admin/site-publish',{method:'POST',body:{version:saved.editor.version}});
  const image=await f.request(background.url.slice('/api/'.length),{token:null});assert.equal(image.status,200);assert.equal(image.headers.get('Content-Type'),'image/png');assert.equal(image.headers.get('X-Content-Type-Options'),'nosniff');assert.deepEqual(image.body,png);
  assert.equal((await f.request(background.url.slice('/api/'.length),{token:null,headers:{'If-None-Match':image.headers.get('ETag')}})).status,304);
  assert.equal((await f.request('site-background?v=old',{token:null})).status,404);
  const {config}=(await f.request('admin/state')).body;config.site.homeTitle='Novo título';assert.equal((await f.request('admin/config',{method:'PUT',body:config})).status,200);
  assert.equal((await f.request('catalog',{token:null})).body.site.backgroundImage,background.url);
  const disabled=await f.request('admin/background',{method:'PUT',body:{version:1,active:false}});assert.equal(disabled.body.background.version,2);
- assert.equal((await f.request('catalog',{token:null})).body.site.backgroundImage,'');
+ assert.equal((await f.request('catalog',{token:null})).body.site.backgroundImage,background.url);
  assert.equal((await f.request('admin/background',{method:'PUT',body:{version:1,active:true}})).status,409);
  assert.equal((await f.request('admin/background',{method:'PUT',body:{version:2,active:true}})).status,200);
  assert.equal((await f.request('catalog',{token:null})).body.site.backgroundImage,background.url);
@@ -37,6 +38,6 @@ test('background storage handles multiple chunks and replacement gets a new cach
  assert.equal(first.chunks,4);assert.deepEqual((await request(first.url.slice('/api/'.length),{token:null})).body,large);
  const second=(await request('admin/background',{method:'POST',body:png,headers:{'X-Background-Version':'1'}})).body.background;
  assert.equal(second.version,2);assert.notEqual(second.url,first.url);assert.equal(second.chunks,1);
- assert.equal((await request(first.url.slice('/api/'.length),{token:null})).status,404);
+ assert.equal((await request(first.url.slice('/api/'.length),{token:null})).status,200);assert.deepEqual((await request(first.url.slice('/api/'.length),{token:null})).body,large);
  assert.deepEqual((await request(second.url.slice('/api/'.length),{token:null})).body,png);
 });

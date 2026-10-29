@@ -36,7 +36,8 @@
     "backgroundPositionX": 50,
     "backgroundPositionY": 50,
     "backgroundScale": 100,
-    "backgroundRepeat": "no-repeat"
+    "backgroundRepeat": "no-repeat",
+    "backgroundImage": ""
   },
   "home": {
     "eyebrow": "☾ BEM-VINDO À COBBLEMOON",
